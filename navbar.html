@@ -1,0 +1,52 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center fw-bold" href="{{ url_for('dashboard') }}">
+      <img src="https://kecamatanmegamendung.bogorkab.go.id/assets/front/img/header_logo_1720080636658580039.png"
+           alt="Logo" height="30" class="me-2">
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <!-- Link berdasarkan role -->
+        {% if session.get('role') == 'superadmin' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('rumah_list') }}">RTLH</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('kelola_admin') }}">Kelola Admin</a>
+          </li>
+        {% elif session.get('role') == 'admin' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('rumah_list') }}">RTLH</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">Peta RTLH</a>
+          </li>
+        {% endif %}
+
+        <!-- Auth -->
+        {% if session.get('username') %}
+          <li class="nav-item">
+            <a class="nav-link text-warning" href="{{ url_for('logout') }}">Logout ({{ session['username'] }})</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link text-light" href="{{ url_for('login') }}">Login</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

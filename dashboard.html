@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard RTLH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    .btn-navy {
+      background-color: rgb(6, 6, 24);
+      color: white;
+    }
+    .btn-navy:hover {
+      background-color: #012e71;
+      color: white;
+    }
+    #map { height: 500px; border-radius: 10px; margin-bottom: 30px; }
+    .stat-card { border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .dropdown-menu { max-height: 300px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  {% include 'navbar.html' %}
+
+  <div class="container my-4">
+    <h2 class="mb-3">📍 Peta Rumah Tidak Layak Huni Kecamatan Megamendung</h2>
+
+    <!-- Search & Reset -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input type="text" id="searchInput" class="form-control" placeholder="Cari nama, alamat, atau desa...">
+          <button class="btn btn-outline-secondary" id="resetBtn" type="button">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Dropdown -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Filter Status:</label>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Pilih Status
+          </button>
+          <ul class="dropdown-menu p-3">
+            {% for s in ['Selesai', 'Dalam Proses', 'Sedang Diverifikasi', 'Belum Dilaksanakan'] %}
+              <li>
+                <div class="form-check">
+                  <input class="form-check-input status-checkbox" type="checkbox" value="{{ s }}" id="status_{{ loop.index }}">
+                  <label class="form-check-label" for="status_{{ loop.index }}">{{ s }}</label>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Filter Desa:</label>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Pilih Desa
+          </button>
+          <ul class="dropdown-menu p-3">
+            {% for d in desa_list %}
+              <li>
+                <div class="form-check">
+                  <input class="form-check-input desa-checkbox" type="checkbox" value="{{ d }}" id="desa_{{ loop.index }}">
+                  <label class="form-check-label" for="desa_{{ loop.index }}">{{ d }}</label>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jumlah Data -->
+    <p id="jumlahDataTampil" class="text-muted fw-semibold mb-2"></p>
+
+    <!-- PETA -->
+    <div id="map"></div>
+
+    <!-- Statistik -->
+    <h5 class="mb-3">📊 Data RTLH di Kecamatan Megamendung</h5>
+    <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-md-5">
+      <div class="col"><div class="bg-white stat-card p-3 text-center"><div>Total Rumah</div><h4 class="fw-bold">{{ total }}</h4></div></div>
+      <div class="col"><div class="bg-white stat-card p-3 text-center"><div class="text-primary">Selesai</div><h4>{{ status_count.get('Selesai', 0) }}</h4></div></div>
+      <div class="col"><div class="bg-white stat-card p-3 text-center"><div class="text-success">Dalam Proses</div><h4>{{ status_count.get('Dalam Proses', 0) }}</h4></div></div>
+      <div class="col"><div class="bg-white stat-card p-3 text-center"><div class="text-warning">Sedang Diverifikasi</div><h4>{{ status_count.get('Sedang Diverifikasi', 0) }}</h4></div></div>
+      <div class="col"><div class="bg-white stat-card p-3 text-center"><div class="text-secondary">Belum Dilaksanakan</div><h4>{{ status_count.get('Belum Dilaksanakan', 0) }}</h4></div></div>
+    </div>
+  </div>
+
+  {% include 'footer.html' %}
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([-6.688, 106.933], 12);
+    map.zoomControl.setPosition('bottomright'); // 👈 tombol + dan - di pojok kanan bawah
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const icons = {
+      "Selesai": L.icon({ iconUrl: "{{ url_for('static', filename='icons/rumah_biru.png') }}", iconSize: [43, 43], iconAnchor: [16, 32], popupAnchor: [0, -30] }),
+      "Dalam Proses": L.icon({ iconUrl: "{{ url_for('static', filename='icons/rumah_hijau.png') }}", iconSize: [43, 43], iconAnchor: [16, 32], popupAnchor: [0, -30] }),
+      "Sedang Diverifikasi": L.icon({ iconUrl: "{{ url_for('static', filename='icons/rumah_kuning.png') }}", iconSize: [43, 43], iconAnchor: [16, 32], popupAnchor: [0, -30] }),
+      "Belum Dilaksanakan": L.icon({ iconUrl: "{{ url_for('static', filename='icons/rumah_abu.png') }}", iconSize: [43, 43], iconAnchor: [16, 32], popupAnchor: [0, -30] })
+    };
+
+    const rumahList = {{ rumah_list | tojson }};
+    const markers = [];
+
+    function getCheckedValues(className) {
+      return Array.from(document.querySelectorAll(`.${className}:checked`)).map(cb => cb.value);
+    }
+
+    function renderMarkers() {
+      const selectedStatuses = getCheckedValues("status-checkbox");
+      const selectedDesas = getCheckedValues("desa-checkbox");
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+      markers.forEach(m => map.removeLayer(m));
+      markers.length = 0;
+
+      let count = 0;
+      rumahList.forEach(r => {
+        if (r.latitude && r.longitude) {
+          const matchStatus = selectedStatuses.length === 0 || selectedStatuses.includes(r.status);
+          const matchDesa = selectedDesas.length === 0 || selectedDesas.includes(r.desa);
+          const combinedText = `${r.nama_pemilik} ${r.alamat} ${r.desa}`.toLowerCase();
+          const matchKeyword = keyword === "" || combinedText.includes(keyword);
+
+          if (matchStatus && matchDesa && matchKeyword) {
+            const icon = icons[r.status] || icons["Belum Dilaksanakan"];
+            const popupContent = `
+              <div style="max-width: 250px;">
+                <strong>${r.nama_pemilik}</strong><br>
+                Desa ${r.desa || '-'}<br>
+                Status: <strong>${r.status}</strong><br>
+                ${r.foto_rumah_depan ? `<img src="/static/uploads/${r.foto_rumah_depan}" class="img-fluid my-2 rounded" style="max-height: 100px;">` : ''}
+                ${r.url_google_maps ? `<a href="${r.url_google_maps}" target="_blank" class="btn btn-sm mb-1 w-100">🌍 Lihat di Google Street View</a>` : ''}
+                <a href="/detail/${r.id_rtlh}" class="btn btn-sm w-100 btn-navy">🔍 Lihat Detail</a>
+              </div>`;
+            const marker = L.marker([r.latitude, r.longitude], { icon: icon }).bindPopup(popupContent).addTo(map);
+            markers.push(marker);
+            count++;
+          }
+        }
+      });
+
+      document.getElementById('jumlahDataTampil').textContent = `Menampilkan ${count} dari ${rumahList.length} rumah`;
+    }
+
+    renderMarkers();
+
+    // Event listeners
+    document.querySelectorAll('.status-checkbox, .desa-checkbox').forEach(cb => {
+      cb.addEventListener('change', renderMarkers);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderMarkers);
+
+    // Tombol Reset
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      document.getElementById('searchInput').value = "";
+      document.querySelectorAll('.status-checkbox, .desa-checkbox').forEach(cb => cb.checked = false);
+      renderMarkers();
+    });
+
+    // Hindari dropdown tertutup saat klik checkbox
+    document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    });
+  </script>
+</body>
+</html>

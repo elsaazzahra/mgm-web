@@ -1,0 +1,35 @@
+{% include 'navbar.html' %}
+
+<div class="container py-4">
+  <div class="card shadow">
+    <div class="card-header bg-info text-white">
+      <h5 class="mb-0">Detail Admin</h5>
+    </div>
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-4">ID Admin</dt>
+        <dd class="col-sm-8">{{ admin.id_user }}</dd>
+
+        <dt class="col-sm-4">Username</dt>
+        <dd class="col-sm-8">{{ admin.username }}</dd>
+
+        <dt class="col-sm-4">Role</dt>
+        <dd class="col-sm-8">{{ admin.role }}</dd>
+
+        <dt class="col-sm-4">Tanggal Dibuat</dt>
+        <dd class="col-sm-8">
+          {% if admin.created_at %}
+            {{ admin.created_at }}
+          {% else %}
+            <em class="text-muted">Tidak tersedia</em>
+          {% endif %}
+        </dd>
+      </dl>
+
+      <a href="{{ url_for('kelola_admin') }}" class="btn btn-secondary mt-3">← Kembali</a>
+      <a href="{{ url_for('edit_admin', id=admin.id_user) }}" class="btn btn-warning mt-3">Edit Admin</a>
+    </div>
+  </div>
+</div>
+
+{% include 'footer.html' %}

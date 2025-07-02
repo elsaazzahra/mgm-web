@@ -1,0 +1,118 @@
+{% include 'navbar.html' %}
+<div class="container my-4">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Edit Data Rumah RTLH</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+          <!-- Kolom Kiri -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label>ID RTLH</label>
+              <input type="text" class="form-control" value="{{ rumah.id_rtlh }}" disabled>
+            </div>
+            <div class="mb-3">
+              <label>Nama Pemilik</label>
+              <input type="text" name="nama_pemilik" class="form-control" value="{{ rumah.nama_pemilik }}" required>
+            </div>
+            <div class="mb-3">
+              <label>NIK</label>
+              <input type="text" name="nik" class="form-control" value="{{ rumah.nik }}">
+            </div>
+            <div class="mb-3">
+              <label>Pekerjaan</label>
+              <input type="text" name="pekerjaan" class="form-control" value="{{ rumah.pekerjaan }}">
+            </div>
+            <div class="mb-3">
+              <label>Jumlah Anggota Keluarga</label>
+              <input type="number" name="jumlah_anggota_keluarga" class="form-control" value="{{ rumah.jumlah_anggota_keluarga }}">
+            </div>
+            <div class="mb-3">
+              <label>Alamat</label>
+              <input type="text" name="alamat" class="form-control" value="{{ rumah.alamat }}" required>
+            </div>
+            <div class="mb-3">
+              <label>Desa</label>
+              <select name="desa" class="form-select" required>
+                <option value="">-- Pilih Desa --</option>
+                {% for d in ['Cipayung','Cipayung Girang','Gadog','Kuta','Megamendung','Sukagalih','Sukakarya','Sukamahi','Sukamaju','Sukamanah','Sukaresmi','Pasir Angin'] %}
+                <option value="{{ d }}" {% if rumah.desa == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="status">Status</label>
+              <select name="status" id="status" class="form-select" required>
+                <option value="">-- Pilih Status --</option>
+                <option value="Belum Dilaksanakan" {% if rumah.status == 'Belum Dilaksanakan' %}selected{% endif %}>Belum Dilaksanakan</option>
+                <option value="Sedang Diverifikasi" {% if rumah.status == 'Sedang Diverifikasi' %}selected{% endif %}>Sedang Diverifikasi</option>
+                <option value="Dalam Proses" {% if rumah.status == 'Dalam Proses' %}selected{% endif %}>Dalam Proses</option>
+                <option value="Selesai" {% if rumah.status == 'Selesai' %}selected{% endif %}>Selesai</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label>Sumber Pembiayaan</label>
+              <input type="text" name="sumber_pembiayaan" class="form-control" value="{{ rumah.sumber_pembiayaan }}">
+            </div>
+            <div class="mb-3">
+              <label>Jumlah Pembiayaan</label>
+              <input type="text" name="jumlah_pembiayaan" class="form-control" value="{{ rumah.jumlah_pembiayaan }}">
+            </div>
+          </div>
+
+          <!-- Kolom Kanan -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label>Longitude</label>
+              <input type="text" name="longitude" class="form-control" value="{{ rumah.longitude }}" required>
+            </div>
+            <div class="mb-3">
+              <label>Latitude</label>
+              <input type="text" name="latitude" class="form-control" value="{{ rumah.latitude }}" required>
+            </div>
+            <div class="mb-3">
+              <label>URL Google Maps</label>
+              <input type="text" name="url_google_maps" class="form-control" value="{{ rumah.url_google_maps }}">
+            </div>
+            <div class="mb-3">
+              <label>Tanggal Mulai</label>
+              <input type="date" name="tanggal_mulai" class="form-control" value="{{ rumah.tanggal_mulai }}">
+            </div>
+            <div class="mb-3">
+              <label>Tanggal Selesai</label>
+              <input type="date" name="tanggal_selesai" class="form-control" value="{{ rumah.tanggal_selesai }}">
+            </div>
+
+            <!-- Foto Preview dan Upload -->
+            {% for field, label in [
+              ('foto_rumah_depan', 'Depan'),
+              ('foto_rumah_kiri', 'Kiri'),
+              ('foto_rumah_belakang', 'Belakang'),
+              ('foto_rumah_kanan', 'Kanan'),
+              ('foto_lantai_rumah', 'Lantai'),
+              ('foto_rumah_360', '360')
+            ] %}
+            <div class="mb-3">
+              <label>Foto Rumah {{ label }}</label><br>
+              {% if rumah[field] %}
+                <img src="{{ url_for('static', filename='uploads/' + rumah[field]) }}"
+                     alt="Foto {{ label }}" class="img-thumbnail mb-2" width="120">
+              {% endif %}
+              <input type="file" name="{{ field }}" class="form-control">
+            </div>
+            {% endfor %}
+
+            <div class="d-grid mt-3">
+              <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% include 'footer.html' %}
+
